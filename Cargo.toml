@@ -20,8 +20,8 @@ serde_json = "1.0.79"
 serde_yaml = "0.8.23"
 thiserror = "1.0.30"
 tokio = { version = "1.17.0", features = ["full"] }
-tracing = "0.1.32"
-tracing-subscriber = { version = "0.3.9", features = ["env-filter"] }
+tracing = "0.1.33"
+tracing-subscriber = { version = "0.3.11", features = ["env-filter"] }
 tracing-tree = "0.2.0"
 ulid = "0.5.0"
 uuid = { version = "0.8.2", features = ["v4"] }

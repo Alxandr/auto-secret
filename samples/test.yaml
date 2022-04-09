@@ -1,0 +1,9 @@
+apiVersion: webstep.no/v1alpha1
+kind: AutoSecret
+metadata:
+  name: foo
+spec:
+  secrets:
+    s1: uuid
+    s2: ulid
+    s3: ulid

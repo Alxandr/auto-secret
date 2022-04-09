@@ -1,0 +1,27 @@
+[package]
+name = "auto-select"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+argwerk = "0.20.1"
+color-eyre = "0.6.1"
+futures = "0.3.21"
+hex = "0.4.3"
+k8s-openapi = { version = "0.14.0", features = ["v1_21"] }
+kube = { version = "0.70.0", features = ["derive", "runtime"] }
+nameof = "1.2.2"
+schemars = "0.8.8"
+seahash = "4.1.0"
+serde = { version = "1.0.136", features = ["derive"] }
+serde_json = "1.0.79"
+serde_yaml = "0.8.23"
+thiserror = "1.0.30"
+tokio = { version = "1.17.0", features = ["full"] }
+tracing = "0.1.32"
+tracing-subscriber = { version = "0.3.9", features = ["env-filter"] }
+tracing-tree = "0.2.0"
+ulid = "0.5.0"
+uuid = { version = "0.8.2", features = ["v4"] }

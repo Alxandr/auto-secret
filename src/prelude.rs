@@ -29,6 +29,9 @@ pub use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvF
 pub use tracing_tree::HierarchicalLayer;
 
 pub fn setup_logging() -> Result<()> {
+  let env_log = format!("{}=info", env!("CARGO_PKG_NAME").replace("-", "_"));
+  println!("log: {env_log}");
+  std::env::set_var("RUST_LOG", &env_log);
   color_eyre::install()?;
   Registry::default()
     .with(EnvFilter::from_default_env())
@@ -87,6 +90,7 @@ impl ClientExt for Client {
     let mut secret = Secret {
       metadata: ObjectMeta {
         name: Some(name.clone()),
+        namespace: Some(namespace.clone()),
         owner_references: Some(vec![oref]),
         ..ObjectMeta::default()
       },
@@ -145,7 +149,7 @@ pub enum SecretStatus {
 
 #[async_trait::async_trait]
 pub trait SecretExt {
-  fn retain(&mut self, filter: impl FnMut(&str, &ByteString) -> bool);
+  fn retain(&mut self, filter: impl FnMut(&str, &ByteString) -> bool) -> bool;
   fn secret_status(&self, name: &str, spec: &super::AutoSecretType) -> SecretStatus;
   fn set_secret(&mut self, name: &str, spec: &super::AutoSecretType);
   async fn apply(self, client: Client) -> Result<(), ControllerError>;
@@ -153,7 +157,7 @@ pub trait SecretExt {
 
 #[async_trait::async_trait]
 impl SecretExt for Secret {
-  fn retain(&mut self, filter: impl FnMut(&str, &ByteString) -> bool) {
+  fn retain(&mut self, mut filter: impl FnMut(&str, &ByteString) -> bool) -> bool {
     let annotations = self.metadata.annotations.get_or_insert_with(Default::default);
     let data = self.data.get_or_insert_with(Default::default);
 
@@ -164,9 +168,13 @@ impl SecretExt for Secret {
       .cloned()
       .collect::<Vec<_>>();
 
+    let modified = !to_remove.is_empty();
+
     for name in to_remove {
       remove_secret(annotations, data, &*name);
     }
+
+    modified
   }
 
   fn secret_status(&self, name: &str, spec: &super::AutoSecretType) -> SecretStatus {
@@ -202,8 +210,8 @@ impl SecretExt for Secret {
   }
 
   async fn apply(self, client: Client) -> Result<(), ControllerError> {
-    let namespace = self.metadata.namespace.clone().unwrap();
-    let name = self.metadata.name.clone().unwrap();
+    let namespace = self.metadata.namespace.clone().expect("secret must have namespace");
+    let name = self.metadata.name.clone().expect("secret must have name");
     let secret_api = Api::<Secret>::namespaced(client, &namespace);
 
     patch_secret(secret_api, &name, self).await

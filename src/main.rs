@@ -81,7 +81,7 @@ async fn reconcile(resource: Arc<AutoSecret>, ctx: Context<Client>) -> Result<Ac
 
   // remove (in-memory) all secrets from the k8s secret
   // that does not exist in the spec
-  secret.retain(|name, _| spec_secrets.contains_key(name));
+  secret.retain(|name, _| !spec_secrets.contains_key(name));
 
   // update or create missing secrets in the k8s secret
   // that do exist in the spec

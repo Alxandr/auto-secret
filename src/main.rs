@@ -45,20 +45,10 @@ async fn main() -> Result<()> {
     return Ok(());
   }
 
-  let client = Client::try_default().await?;
-
-  let autosecrets = Api::<AutoSecret>::all(client.clone());
-  let secrets = Api::<Secret>::all(client.clone());
-
   info!("starting autosecret-controller");
   info!("press <enter> to force a reconciliation of all objects");
 
-  Controller::new(autosecrets, ListParams::default())
-    .owns(secrets, ListParams::default())
-    .handle_signals()
-    .run(reconcile, error_policy, Context::new(client))
-    .for_each(log_reconciler_result)
-    .await;
+  run_controller(reconcile, error_policy).await?;
 
   info!("controller terminated");
   Ok(())

@@ -1,4 +1,4 @@
-use futures::Stream;
+use futures::{Stream, TryFuture};
 use kube::runtime::{controller, reflector::ObjectRef, watcher};
 
 pub use super::secret_types::AutoSecretType;
@@ -27,6 +27,27 @@ pub use thiserror::Error;
 pub use tracing::{info, warn};
 pub use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Registry};
 pub use tracing_tree::HierarchicalLayer;
+
+pub async fn run_controller<F, E, ReconcilerFut>(reconcile: F, error_policy: E) -> Result<()>
+where
+  F: FnMut(Arc<super::AutoSecret>, Context<Client>) -> ReconcilerFut,
+  E: FnMut(&ReconcilerFut::Error, Context<Client>) -> Action,
+  ReconcilerFut: TryFuture<Ok = Action, Error = ControllerError> + Send + 'static,
+{
+  let client = Client::try_default().await?;
+
+  let autosecrets = Api::<super::AutoSecret>::all(client.clone());
+  let secrets = Api::<Secret>::all(client.clone());
+
+  Controller::new(autosecrets, ListParams::default())
+    .owns(secrets, ListParams::default())
+    .handle_signals()
+    .run(reconcile, error_policy, Context::new(client))
+    .for_each(log_reconciler_result)
+    .await;
+
+  Ok(())
+}
 
 pub fn setup_logging() -> Result<()> {
   let env_log = format!("{}=info", env!("CARGO_PKG_NAME").replace("-", "_"));

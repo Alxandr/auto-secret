@@ -6,4 +6,5 @@ spec:
   secrets:
     s1: uuid
     s2: ulid
-    s3: ulid
+    # s3: ulid
+    # ny_test: uuid

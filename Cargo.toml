@@ -14,7 +14,7 @@ hex = "0.4.3"
 k8s-openapi = { version = "0.14.0", features = ["v1_21"] }
 kube = { version = "0.71.0", features = ["derive", "runtime"] }
 nameof = "1.2.2"
-schemars = "0.8.8"
+schemars = "0.8.11"
 seahash = "4.1.0"
 serde = { version = "1.0.136", features = ["derive"] }
 serde_json = "1.0.81"
